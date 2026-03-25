@@ -13,11 +13,8 @@ function logout() {
 
   const createRequest = function (url, succeed, fail) {
     fetch(url, {
-      method: 'GET',
+      method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     })
       .then((response) => handleErrors(response))
       .then((data) => succeed(data))
