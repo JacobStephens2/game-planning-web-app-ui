@@ -1,3 +1,4 @@
+const pageTitle = document.title || 'Game Planning';
 document.querySelector('head').innerHTML = `
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -10,7 +11,7 @@ document.querySelector('head').innerHTML = `
   <link rel="stylesheet" href="/styles/vendor/remedy.css">
   <link rel="stylesheet" href="/styles/vendor/reminders.css">
   <link rel="stylesheet" href="/styles/style.css">
-  <title>Page</title>
+  <title>${pageTitle}</title>
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-QMLT3NJ32P"></script>
   <script>
