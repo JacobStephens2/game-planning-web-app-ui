@@ -17,9 +17,11 @@
   <form>
     <label for="title">Title</label>
     <input type="text" name="game[title]" id="title">
+    <label for="description">Description</label>
+    <textarea name="game[description]" id="description" rows="3"></textarea>
     <input type="submit" value="Create">
   </form>
-  <p>&ensp;</p>
+  <p id="message">&ensp;</p>
   <script type="module" src="/modules/requests/game/create.js"></script>
 
   <footer>

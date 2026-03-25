@@ -3,12 +3,10 @@ import { apiHostname } from '/modules/exports/apiHostname.js';
 import { handleErrors } from '/modules/exports/handleErrors.js';
 import { updateUIError } from '/modules/exports/updateUIError.js';
 
-if (cookieMethods.getCookie('loggedIn') == 'true') {
-} else {
+if (cookieMethods.getCookie('loggedIn') != 'true') {
   window.location = '/login';
 }
 
-// Read data on page load
 let queryString = window.location.search;
 let urlParams = new URLSearchParams(queryString);
 let id = urlParams.get('id');
@@ -21,39 +19,38 @@ const updateUISuccess = function (data) {
 
 let readEndpoint = apiHostname + '/game/read?id=' + id;
 
-var requestOptions = {
+fetch(readEndpoint, {
   method: 'GET',
   credentials: 'include',
   redirect: 'follow'
-};
-
-fetch(readEndpoint, requestOptions, updateUIError)
+})
   .then(response => handleErrors(response))
   .then((data) => updateUISuccess(data))
-  .catch(error => console.log('error', error));
+  .catch(error => updateUIError(error));
 
 // Delete on Delete button click
 document.querySelector('input[type="submit"]').addEventListener('click', function (event) {
-  event.preventDefault()
+  event.preventDefault();
+
+  const submitBtn = this;
+
+  // Loading state
+  submitBtn.dataset.originalValue = submitBtn.value;
+  submitBtn.value = 'Deleting...';
+  submitBtn.disabled = true;
+
   let deleteEndpoint = apiHostname + '/game/delete?id=' + id;
 
-  const updateWithResponse = function (data) {
-    const parsedData = JSON.parse(data);
-    document.querySelector('#message').innerText = parsedData.message;
-    document.querySelector('h1').innerText = "Deleted " + parsedData.title;
-    document.querySelector('title').innerText = "Deleted " + parsedData.title;
-    window.location = '/games/read?message=' + encodeURIComponent('Deleted ') + encodeURIComponent(parsedData.title);
-  }
-
-  var requestOptions = {
+  fetch(deleteEndpoint, {
     method: 'POST',
     credentials: 'include',
     redirect: 'follow'
-  };
-
-  fetch(deleteEndpoint, requestOptions)
+  })
     .then(response => handleErrors(response))
-    .then((data) => updateWithResponse(data))
+    .then((data) => {
+      const parsedData = JSON.parse(data);
+      window.location = '/games/read?message=' + encodeURIComponent('Deleted ' + parsedData.title);
+    })
     .catch((error) => updateUIError(error));
 
 });

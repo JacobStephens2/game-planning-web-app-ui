@@ -5,30 +5,47 @@ import { updateUIError } from '/modules/exports/updateUIError.js';
 let signUpEndpoint = apiHostname + '/sign-up';
 
 document.querySelector('input[type="submit"]').addEventListener('click', function (event) {
-  event.preventDefault()
-  let data = {};
-  data.email = document.querySelector('input[type="email"]').value;
-  data.password = document.querySelector('input[type="password"]').value;
+  event.preventDefault();
+
+  const messageEl = document.querySelector('#message');
+  const submitBtn = document.querySelector('input[type="submit"]');
+  const email = document.querySelector('input[type="email"]').value;
+  const password = document.querySelector('input[type="password"]').value;
+
+  // Client-side validation
+  if (!email) {
+    messageEl.innerText = 'Please enter an email address';
+    messageEl.style.color = '#c00';
+    return;
+  }
+
+  if (password.length < 8) {
+    messageEl.innerText = 'Password must be at least 8 characters';
+    messageEl.style.color = '#c00';
+    return;
+  }
+
+  // Loading state
+  submitBtn.dataset.originalValue = submitBtn.value;
+  submitBtn.value = 'Signing up...';
+  submitBtn.disabled = true;
+  messageEl.innerText = '';
 
   const updateUISuccess = function (data) {
     const parsedData = JSON.parse(data);
-    document.querySelector('form+p').innerText = parsedData.message;
+    messageEl.style.color = '';
+    messageEl.innerText = parsedData.message;
+    submitBtn.value = submitBtn.dataset.originalValue;
+    submitBtn.disabled = false;
   }
 
-  const createRequest = function (url, succeed, fail) {
-    fetch(url, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
-    })
-      .then((response) => handleErrors(response))
-      .then((data) => succeed(data))
-      .catch((error) => fail(error));
-  };
-
-  createRequest(signUpEndpoint, updateUISuccess, updateUIError);
-
+  fetch(signUpEndpoint, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  })
+    .then((response) => handleErrors(response))
+    .then((data) => updateUISuccess(data))
+    .catch((error) => updateUIError(error));
 });

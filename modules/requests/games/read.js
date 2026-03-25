@@ -3,8 +3,7 @@ import { apiHostname } from '/modules/exports/apiHostname.js';
 import { handleErrors } from '/modules/exports/handleErrors.js';
 import { updateUIError } from '/modules/exports/updateUIError.js';
 
-if (cookieMethods.getCookie('loggedIn') == 'true') {
-} else {
+if (cookieMethods.getCookie('loggedIn') != 'true') {
   window.location = '/login';
 }
 
@@ -17,23 +16,25 @@ if (urlParams.get('message')) {
   document.querySelector('h1').after(messageBox);
 }
 
+// Show loading state
+const loadingEl = document.createElement('p');
+loadingEl.id = 'loading';
+loadingEl.innerText = 'Loading games...';
+document.querySelector('ul').before(loadingEl);
+
 let endpoint = apiHostname + '/games/read';
 
-const createRequest = function (url, succeed, fail) {
-  fetch(url, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  })
-    .then((response) => handleErrors(response))
-    .then((data) => succeed(data))
-    .catch((error) => fail(error));
-};
-
 const updateUISuccess = function (data) {
+  const loadingEl = document.querySelector('#loading');
+  if (loadingEl) loadingEl.remove();
+
   const parsedData = JSON.parse(data);
+  if (parsedData.length === 0) {
+    let emptyMsg = document.createElement('p');
+    emptyMsg.innerText = 'No games yet. Add one to get started!';
+    document.querySelector('ul').before(emptyMsg);
+    return;
+  }
   for (let i in parsedData) {
     let li = document.createElement('li');
     li.innerHTML =
@@ -44,5 +45,15 @@ const updateUISuccess = function (data) {
   }
 }
 
-createRequest(endpoint, updateUISuccess, updateUIError);
-
+fetch(endpoint, {
+  method: 'GET',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' }
+})
+  .then((response) => handleErrors(response))
+  .then((data) => updateUISuccess(data))
+  .catch((error) => {
+    const loadingEl = document.querySelector('#loading');
+    if (loadingEl) loadingEl.remove();
+    updateUIError(error);
+  });
